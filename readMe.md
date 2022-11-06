@@ -82,4 +82,31 @@ PublicRouteConfiguration" -->"DependsOn":"InternetGatewayAttachment" it makes ->
       COMMAND TO DEPLOY!!!!:aws cloudformation deploy --template-file YOURFILENAME --stack-name YOURSTACKNAME --parameter-overrides WebServerKey=YourKEYPAIR
    7)DELETE COMMAND FOR STACK -> If you want to delete your stack -> aws cloudformation delete-stack --stack-name YOURSTACKNAME 
 
-**** CI/CD TOGETHER!!!! by Using Github! *** -> We need an EC2 for this!!!
+**** CI/CD TOGETHER!!!! by Using Github! *** -> We need an EC2 for this!!! --> EC2 instance needed as an Agent!
+    1)EC2 insatance exists and to be connected through Bash Terminal. 
+    2)Github->Settings->Actions-> Runner -> New selfHosted runner -> If no runners are configured you need to follow the instructions in order to do the configuration!
+      2.1) Choose runner image ->Linux or etc. I will choose linux for this case.
+      2.2) There is a copy option next to each download commadn but I will paste it here just in case step by step
+          2.2.1)mkdir actions-runner && cd actions-runner                  --> actions-runner is a generic name of the folder . You can type what you want to!!!!
+          2.2.2)curl -o actions-runner-linux-x64-2.298.2.tar.gz -L https://github.com/actions/runner/releases/download/v2.298.2/actions-runner-linux-x64-2.298.2.tar.gz
+          2.2.3)tar xzf ./actions-runner-linux-x64-2.298.2.tar.gz
+      2.3) Configure Github Runner
+         2.3.1)./config.sh --url https://github.com/NamikanilBasnuh/CI_CD_CFT --token APJU37TOOCSU7F7QZRD34F3DM4PEY 
+         2.3.2) Click Enter for default settings until you see
+               √ Runner successfully added
+               √ Runner connection is good
+               √ Settings Saved.
+         2.3.3)./run.sh   --> you will see √ Connected to GitHub if everyhing is good. And you will see "Listening for Jobs" in the end!!!
+
+    3) Create a workflow folder as ->mkdir -p .github/workflows
+        -p means: create the directory and, if required, all parent directories
+    4)You need a yml file inside of .github/workflows and write all runs and configurations there!!!
+      4.1) While putting you keys here :
+                - name: Configure AWS credentials
+                  uses: aws-actions/configure-aws-credentials@v1
+                  with:
+                    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}             --> YOU MUST USE GITHUB SECRETS!!!!!
+                    aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET_KEY_ID }}  --> YOU MUST USE GITHUB SECRETS!!!!!
+                    aws-region: us-east-1
+    5)Go to Github -> go to your repository that you want to do the CI/CD -> Settings -> Secrets -> Actions -> repositery secrets -> new repository secret
+                   ->   Name -> AWS_ACCESS_KEY_ID

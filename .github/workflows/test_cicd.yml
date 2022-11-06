@@ -1,0 +1,43 @@
+name: test_cft_ci_cd
+
+on:
+  push:
+    branches:
+      - feature/**
+  pull_request:
+       
+
+jobs:
+  cft-actions:
+    name: cft-deploy-through-Github
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repository 
+      uses: actions/checkout@master 
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET_KEY_ID }}
+        aws-region: us-east-1
+
+    - name: Install aws cli on Ubuntu 
+      run: curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+    - name: Install unzip
+      run: sudo apt-get install unzip -y
+
+    - name: Unzip the package
+      run: unzip awscliv2.zip
+
+    - name: Start the command 
+      run: sudo ./aws/install
+      continue-on-error: true
+
+    # - name: Delete the stack
+    #   run:  aws cloudformation delete-stack --stack-name vpc-stack
+
+    - name: Deploy CFT to aws in us-east-1
+      run: aws cloudformation deploy --template-file cft_vpc.json --stack-name CICDfromGithub --parameter-overrides WebServerKey=bastion
