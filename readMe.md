@@ -109,4 +109,5 @@ PublicRouteConfiguration" -->"DependsOn":"InternetGatewayAttachment" it makes ->
                     aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET_KEY_ID }}  --> YOU MUST USE GITHUB SECRETS!!!!!
                     aws-region: us-east-1
     5)Go to Github -> go to your repository that you want to do the CI/CD -> Settings -> Secrets -> Actions -> repositery secrets -> new repository secret
-                   ->   Name -> AWS_ACCESS_KEY_ID
+                   ->   Name -> AWS_ACCESS_KEY_ID    --> you put it in ${{secrets.}}   --> It will be read by Github!
+                   ->   Name ->AWS_ACCESS_SECRET_KEY_ID    --> you put in it ${{secrets.}}   --> It will be read by Github!
