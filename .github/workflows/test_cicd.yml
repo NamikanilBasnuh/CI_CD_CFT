@@ -36,8 +36,8 @@ jobs:
       run: sudo ./aws/install
       continue-on-error: true
 
-    # - name: Delete the stack
-    #   run:  aws cloudformation delete-stack --stack-name vpc-stack
+    - name: Delete the stack
+      run:  aws cloudformation delete-stack --stack-name vpc-stack
 
-    - name: Deploy CFT to aws in us-east-1
-      run: aws cloudformation deploy --template-file cft_vpc.json --stack-name CICDfromGithub --parameter-overrides WebServerKey=bastion
+    # - name: Deploy CFT to aws in us-east-1
+    #   run: aws cloudformation deploy --template-file cft_vpc.json --stack-name CICDfromGithub --parameter-overrides WebServerKey=bastion      
