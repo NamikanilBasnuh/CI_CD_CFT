@@ -10,7 +10,7 @@ on:
 jobs:
   cft-actions:
     name: cft-deploy-through-Github
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - name: checkout repository 
