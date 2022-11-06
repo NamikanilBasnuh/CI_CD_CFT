@@ -1,0 +1,241 @@
+
+{
+
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description": "I am creating a VPC with a LoadBalancer and a AutoScalingGroup ",
+    "Parameters": {
+        "WebServerKey": {   
+            "Description": "Parameterized Key will be used to SSH into EC2 instances",
+            "Type":"AWS::EC2::KeyPair::KeyName"
+
+
+
+
+}
+ },
+
+ "Resources":{
+
+    "VPC":{
+        "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+            "CidrBlock" : "10.0.0.0/16",
+            "EnableDnsHostnames" : true,
+            "EnableDnsSupport" : false,
+            "InstanceTenancy" : "default",
+           
+            "Tags" : [ 
+                {
+                     "Key":"Name",
+                     "Value":"test-Vpc-cft"
+
+                    } 
+                ]
+          }
+      },
+
+      "PublicSubnet1":{
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+            "AvailabilityZone" : {
+                "Fn::Select" : [ 
+                  "0", 
+                  { 
+                    "Fn::GetAZs" : "" 
+                  } 
+                ]
+              },
+            "CidrBlock" : "10.0.1.0/28",
+            "MapPublicIpOnLaunch" : true,
+            "Tags" : [{
+                "Key" : "Name", "Value" : "Public_Subnet_1" 
+
+            }],
+            "VpcId" : {"Ref":"VPC"}
+          }
+      },
+
+      "PublicSubnet2":{
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+            "AvailabilityZone" : {
+                "Fn::Select" : [ 
+                  "1", 
+                  { 
+                    "Fn::GetAZs" : "" 
+                  } 
+                ]
+              },
+            "CidrBlock" : "10.0.2.0/28",
+            "MapPublicIpOnLaunch" : true,
+            "Tags" : [{
+                "Key" : "Name", "Value" : "Public_Subnet_2" 
+
+            }],
+            "VpcId" : {"Ref":"VPC"}
+          }
+      },
+
+      "PrivateSubnet1":{
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+            "AvailabilityZone" : {
+                "Fn::Select" : [ 
+                  "0", 
+                  { 
+                    "Fn::GetAZs" : "" 
+                  } 
+                ]
+              },
+            "CidrBlock" : "10.0.3.0/28",
+            "MapPublicIpOnLaunch" : false,
+            "Tags" : [{
+                "Key" : "Name", "Value" : "Private_Subnet_1" 
+
+            }],
+            "VpcId" : {"Ref":"VPC"}
+          }
+      },
+
+      "PrivateSubnet2":{
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+            "AvailabilityZone" : {
+                "Fn::Select" : [ 
+                  "1", 
+                  { 
+                    "Fn::GetAZs" : "" 
+                  } 
+                ]
+              },
+            "CidrBlock" : "10.0.4.0/28",
+            "MapPublicIpOnLaunch" : false,
+            "Tags" : [{
+                "Key" : "Name", "Value" : "Private_Subnet_2" 
+
+            }],
+            "VpcId" : {"Ref":"VPC"}
+          }
+      },
+
+      "testCftInternetGateway" : {
+        "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [ {"Key" : "Name", "Value" : "Test-Cft-InternetGW"}]
+        }
+     },
+
+     "AttachGateway" : {
+        "Type" : "AWS::EC2::VPCGatewayAttachment",
+        "Properties" : {
+           "VpcId" : { "Ref" : "VPC" },
+           "InternetGatewayId" : { "Ref" : "testCftInternetGateway" }
+         }
+     },
+
+     "PublicRouteTable" : {
+        "Type" : "AWS::EC2::RouteTable",
+        "Properties" : {
+           "VpcId" : { "Ref" : "VPC" },
+           "Tags" : [ { "Key" : "Name", "Value" : "PublicRT" } ]
+        }
+     },
+
+     "PublicRouteConfiguration":{
+        "Type" : "AWS::EC2::Route",
+        "DependsOn":"AttachGateway",
+        "Properties" : {
+            "GatewayId" : {"Ref":"testCftInternetGateway"},
+            "RouteTableId" : {"Ref":"PublicRouteTable"},
+            "DestinationCidrBlock" : "0.0.0.0/0"
+          }
+      },
+
+      
+     "PublicSubnet1RouteTableAssociation" : {
+    "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+    "Properties" : {
+       "SubnetId" : { "Ref" : "PublicSubnet1" },
+       "RouteTableId" : { "Ref" : "PublicRouteTable" }
+    }
+ },
+
+    "PublicSubnet2RouteTableAssociation" : {
+    "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+    "Properties" : {
+       "SubnetId" : { "Ref" : "PublicSubnet2" },
+       "RouteTableId" : { "Ref" : "PublicRouteTable" }
+    }
+ },
+
+ "Public2NATGateway" : {
+            
+    "Type" : "AWS::EC2::NatGateway",
+    "Properties" : {
+        "AllocationId" : { "Fn::GetAtt": ["NatElasticIP","AllocationId"]},
+        "ConnectivityType" : "public",
+        "SubnetId" : {"Ref":"PublicSubnet2"},
+        "Tags" : [ {
+                    "Key":"Name", 
+                    "Value":"CftNat-Gateway" 
+                }
+                ]
+      }
+  },
+
+  "NatElasticIP":{
+
+    "Type" : "AWS::EC2::EIP",
+    "DependsOn": "AttachGateway",
+    "Properties" : {
+    "Domain" : "vpc",
+    "Tags" : [
+        {
+            "Key": "Name",
+            "Value": "Elastic-IP"
+        }
+    ]
+
+
+  }
+
+  },
+  "PrivateRouteTable" : {
+    "Type" : "AWS::EC2::RouteTable",
+    "Properties" : {
+       "VpcId" : { "Ref" : "VPC" },
+       "Tags" : [ { "Key" : "Name", "Value" : "PrivateRT" } ]
+    }
+ },
+
+ "PrivateRouteConfigurationConnectItToNatGatewayForConnection":{
+  "Type" : "AWS::EC2::Route",
+  "DependsOn":"AttachGateway",
+  "Properties" : {
+      "NatGatewayId" : {"Ref":"Public2NATGateway"},
+      "RouteTableId" : {"Ref":"PrivateRouteTable"},
+      "DestinationCidrBlock" : "0.0.0.0/0"
+    }
+},
+"AppLayer1PrivateSubnetAssociation": {
+  "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+  "Properties" : {
+      "RouteTableId" : {"Ref": "PrivateRouteTable"},
+      "SubnetId" : {"Ref": "PrivateSubnet1"}
+  }
+},
+"AppLayer2PrivateSubnetAssociation": {
+  "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+  "Properties" : {
+      "RouteTableId" : {"Ref": "PrivateRouteTable"},
+      "SubnetId" : {"Ref": "PrivateSubnet2"}
+  }
+}
+
+
+
+      
+}
+
+
+}
