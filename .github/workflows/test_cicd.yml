@@ -9,7 +9,7 @@ on:
 
 jobs:
   cft-actions:
-    name: cft-deploy-through-Github
+    name: cft delete
     runs-on: self-hosted
 
     steps:
